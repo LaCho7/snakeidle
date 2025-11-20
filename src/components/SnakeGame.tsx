@@ -238,7 +238,10 @@ export default function SnakeGame() {
       level: u.level,
       maxLevel: u.maxLevel,
       unlocked: u.unlocked,
+      requiredLevel: u.requiredLevel,
+      requiredLevelValue: u.requiredLevelValue,
       position: u.position,
+      effect: () => {}, // Fonction vide placeholder pour la sauvegarde
     }));
 
     setSavedUpgrades(currentUpgradesData);
