@@ -40,6 +40,12 @@ function SnakeGame() {
         x: 2,
         y: 2
     });
+    const [blueFruit, setBlueFruit] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null); // Position du fruit bleu
+    const [isBlueFruitActive, setIsBlueFruitActive] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false); // Pour afficher le fruit bleu
+    // État du mode développeur
+    const [isDevMode, setIsDevMode] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [devPassword, setDevPassword] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
+    const [devPoints, setDevPoints] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     // Fonction pour calculer la taille de la grille selon la progression
     const getGridDimensions = (level)=>{
         const evenLevel = Math.floor(level / 2);
@@ -89,6 +95,8 @@ function SnakeGame() {
     const [activeTab, setActiveTab] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("game");
     const [appleValue, setAppleValue] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(1);
     const [timeBonus, setTimeBonus] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0); // Bonus de temps additionnel
+    const [speedBonus, setSpeedBonus] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0); // Bonus de vitesse en pourcentage
+    const [blueFruitBonus, setBlueFruitBonus] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0); // Bonus du fruit bleu
     const [savedUpgrades, setSavedUpgrades] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]); // Améliorations sauvegardées
     const [upgrades, setUpgrades] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([
         {
@@ -154,6 +162,42 @@ function SnakeGame() {
             position: {
                 x: 3,
                 y: 1
+            },
+            effect: {
+                "SnakeGame.useState": ()=>{}
+            }["SnakeGame.useState"]
+        },
+        {
+            id: "speedBonus",
+            name: "Vitesse",
+            description: "Augmente la vitesse du serpent de 5%",
+            baseCost: 100,
+            level: 0,
+            maxLevel: 15,
+            unlocked: false,
+            requiredLevel: "gridSize",
+            requiredLevelValue: 1,
+            position: {
+                x: 1,
+                y: 5
+            },
+            effect: {
+                "SnakeGame.useState": ()=>{}
+            }["SnakeGame.useState"]
+        },
+        {
+            id: "blueFruit",
+            name: "Fruit Bleu",
+            description: "Ajoute 1 PV et 2 secondes par partie",
+            baseCost: 200,
+            level: 0,
+            maxLevel: 10,
+            unlocked: false,
+            requiredLevel: "gridSize",
+            requiredLevelValue: 2,
+            position: {
+                x: 3,
+                y: 3
             },
             effect: {
                 "SnakeGame.useState": ()=>{}
@@ -236,6 +280,14 @@ function SnakeGame() {
                                     }
                                 } else if (upgradeId === "timeBonus") {
                                     setTimeBonus(newLevel * 2); // +2 secondes par niveau
+                                } else if (upgradeId === "speedBonus") {
+                                    setSpeedBonus(newLevel * 5); // +5% de vitesse par niveau
+                                } else if (upgradeId === "blueFruit") {
+                                    setBlueFruitBonus(newLevel * 1); // +1 PV par niveau
+                                    setTimeBonus({
+                                        "SnakeGame.useCallback[buyUpgrade].updatedUpgrades": (prev)=>prev + newLevel * 2
+                                    }["SnakeGame.useCallback[buyUpgrade].updatedUpgrades"]); // +2 secondes par niveau
+                                    setIsBlueFruitActive(true); // Activer l'affichage du fruit bleu
                                 }
                                 return {
                                     ...u,
@@ -278,7 +330,12 @@ function SnakeGame() {
                         level: u.level,
                         maxLevel: u.maxLevel,
                         unlocked: u.unlocked,
-                        position: u.position
+                        requiredLevel: u.requiredLevel,
+                        requiredLevelValue: u.requiredLevelValue,
+                        position: u.position,
+                        effect: ({
+                            "SnakeGame.useCallback[saveUpgrades].currentUpgradesData": ()=>{}
+                        })["SnakeGame.useCallback[saveUpgrades].currentUpgradesData"]
                     })
             }["SnakeGame.useCallback[saveUpgrades].currentUpgradesData"]);
             setSavedUpgrades(currentUpgradesData);
@@ -289,6 +346,9 @@ function SnakeGame() {
                     appleValue,
                     healthBonus,
                     timeBonus,
+                    speedBonus,
+                    blueFruitBonus,
+                    isBlueFruitActive,
                     gridWidth,
                     gridHeight,
                     totalPoints,
@@ -336,6 +396,9 @@ function SnakeGame() {
                                 setAppleValue(data.gameState.appleValue || 1);
                                 setHealthBonus(data.gameState.healthBonus || 0);
                                 setTimeBonus(data.gameState.timeBonus || 0);
+                                setSpeedBonus(data.gameState.speedBonus || 0);
+                                setBlueFruitBonus(data.gameState.blueFruitBonus || 0);
+                                setIsBlueFruitActive(data.gameState.isBlueFruitActive || false);
                                 setGridWidth(data.gameState.gridWidth || INITIAL_GRID_SIZE);
                                 setGridHeight(data.gameState.gridHeight || INITIAL_GRID_SIZE);
                                 setHighScore(data.gameState.highScore || 0);
@@ -361,6 +424,9 @@ function SnakeGame() {
             setAppleValue(1);
             setHealthBonus(0);
             setTimeBonus(0);
+            setSpeedBonus(0);
+            setBlueFruitBonus(0);
+            setIsBlueFruitActive(false);
             setGridWidth(INITIAL_GRID_SIZE);
             setGridHeight(INITIAL_GRID_SIZE);
             // Appliquer les améliorations sauvegardées
@@ -384,6 +450,14 @@ function SnakeGame() {
                             setTimeBonus({
                                 "SnakeGame.useCallback[applySavedUpgrades].newUpgrades": (prev)=>prev + savedUpgrade.level * 2
                             }["SnakeGame.useCallback[applySavedUpgrades].newUpgrades"]);
+                        } else if (baseUpgrade.id === "speedBonus") {
+                            setSpeedBonus(savedUpgrade.level * 5);
+                        } else if (baseUpgrade.id === "blueFruit") {
+                            setBlueFruitBonus(savedUpgrade.level * 1);
+                            setTimeBonus({
+                                "SnakeGame.useCallback[applySavedUpgrades].newUpgrades": (prev)=>prev + savedUpgrade.level * 2
+                            }["SnakeGame.useCallback[applySavedUpgrades].newUpgrades"]);
+                            setIsBlueFruitActive(true);
                         } else if (baseUpgrade.id === "gridSize") {
                             const dimensions = getGridDimensions(savedUpgrade.level);
                             setGridWidth(dimensions.width);
@@ -401,6 +475,41 @@ function SnakeGame() {
     }["SnakeGame.useCallback[applySavedUpgrades]"], [
         savedUpgrades,
         upgrades
+    ]);
+    // Fonctions du mode développeur
+    const toggleDevMode = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "SnakeGame.useCallback[toggleDevMode]": ()=>{
+            if (isDevMode) {
+                setIsDevMode(false);
+                setDevPassword("");
+            } else {
+                if (devPassword === "dev") {
+                    setIsDevMode(true);
+                    alert("Mode développeur activé !");
+                } else {
+                    alert("Mot de passe incorrect !");
+                }
+            }
+        }
+    }["SnakeGame.useCallback[toggleDevMode]"], [
+        isDevMode,
+        devPassword
+    ]);
+    const addDevPoints = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "SnakeGame.useCallback[addDevPoints]": ()=>{
+            const points = parseInt(devPoints);
+            if (!isNaN(points) && points > 0) {
+                setTotalPoints({
+                    "SnakeGame.useCallback[addDevPoints]": (prev)=>prev + points
+                }["SnakeGame.useCallback[addDevPoints]"]);
+                setDevPoints("");
+                alert(`${points} points ajoutés !`);
+            } else {
+                alert("Veuillez entrer un nombre valide !");
+            }
+        }
+    }["SnakeGame.useCallback[addDevPoints]"], [
+        devPoints
     ]);
     // Générer une position aléatoire pour la nourriture
     const generateRandomFood = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
@@ -432,6 +541,36 @@ function SnakeGame() {
         gridWidth,
         gridHeight
     ]);
+    // Générer le fruit bleu (en plus de la pomme rouge)
+    const generateBlueFruit = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "SnakeGame.useCallback[generateBlueFruit]": (currentSnake, foodPosition)=>{
+            if (!isBlueFruitActive) return null;
+            // Créer une liste de toutes les positions possibles en excluant le serpent ET la pomme rouge
+            const availablePositions = [];
+            for(let x = 0; x < gridWidth; x++){
+                for(let y = 0; y < gridHeight; y++){
+                    const isOccupied = currentSnake.some({
+                        "SnakeGame.useCallback[generateBlueFruit].isOccupied": (segment)=>segment.x === x && segment.y === y
+                    }["SnakeGame.useCallback[generateBlueFruit].isOccupied"]);
+                    const isFood = foodPosition.x === x && foodPosition.y === y;
+                    if (!isOccupied && !isFood) {
+                        availablePositions.push({
+                            x,
+                            y
+                        });
+                    }
+                }
+            }
+            if (availablePositions.length === 0) return null;
+            // Choisir une position aléatoire parmi les positions disponibles
+            const randomIndex = Math.floor(Math.random() * availablePositions.length);
+            return availablePositions[randomIndex];
+        }
+    }["SnakeGame.useCallback[generateBlueFruit]"], [
+        gridWidth,
+        gridHeight,
+        isBlueFruitActive
+    ]);
     // Initialiser le jeu
     const startGame = ()=>{
         const initialSnake = [
@@ -450,12 +589,16 @@ function SnakeGame() {
             x: 2,
             y: 2
         };
-        setFood(newFood || {
+        const foodPosition = newFood || {
             x: 2,
             y: 2
-        });
+        };
+        setFood(foodPosition);
+        // Générer le fruit bleu si activé
+        const newBlueFruit = isMounted ? generateBlueFruit(initialSnake, foodPosition) : null;
+        setBlueFruit(newBlueFruit);
         setCurrentPoints(0);
-        setHealthPoints(10 + healthBonus); // Réinitialiser les PV avec le bonus
+        setHealthPoints(10 + healthBonus + blueFruitBonus); // Réinitialiser les PV avec le bonus + fruit bleu
         setTimeLeft(baseTime + timeBonus); // Utiliser le temps de base + le bonus
         setGameState("playing");
     };
@@ -504,7 +647,8 @@ function SnakeGame() {
                 return;
             }
             newSnake.unshift(head);
-            // Vérifier si le snake mange la nourriture
+            // Vérifier si le snake mange la nourriture (pomme rouge)
+            let ateFood = false;
             if (head.x === food.x && head.y === food.y) {
                 setCurrentPoints({
                     "SnakeGame.useCallback[moveSnake]": (prev)=>prev + appleValue
@@ -525,7 +669,26 @@ function SnakeGame() {
                     return;
                 }
                 setFood(newFoodPosition);
-            } else {
+                ateFood = true;
+            }
+            // Vérifier si le snake mange le fruit bleu
+            let ateBlueFruit = false;
+            if (blueFruit && head.x === blueFruit.x && head.y === blueFruit.y) {
+                setCurrentPoints({
+                    "SnakeGame.useCallback[moveSnake]": (prev)=>prev + appleValue * 2
+                }["SnakeGame.useCallback[moveSnake]"]); // Double les points
+                setHealthPoints({
+                    "SnakeGame.useCallback[moveSnake]": (prev)=>{
+                        const newHP = prev + 1; // +1 PV au lieu de -1
+                        return newHP;
+                    }
+                }["SnakeGame.useCallback[moveSnake]"]); // Le serpent gagne 1 PV avec le fruit bleu
+                const newBlueFruitPosition = generateBlueFruit(newSnake, food);
+                setBlueFruit(newBlueFruitPosition);
+                ateBlueFruit = true;
+            }
+            // Si le serpent n'a rien mangé, il rétrécit
+            if (!ateFood && !ateBlueFruit) {
                 newSnake.pop();
             }
             snakeRef.current = newSnake;
@@ -533,8 +696,10 @@ function SnakeGame() {
         }
     }["SnakeGame.useCallback[moveSnake]"], [
         food,
+        blueFruit,
         gameState,
         generateRandomFood,
+        generateBlueFruit,
         gridWidth,
         gridHeight,
         appleValue
@@ -562,14 +727,18 @@ function SnakeGame() {
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "SnakeGame.useEffect": ()=>{
             if (gameState !== "playing") return;
-            const gameInterval = setInterval(moveSnake, INITIAL_SPEED);
+            // Calculer la vitesse avec le bonus (plus le bonus est élevé, plus l'intervalle est court)
+            const speedMultiplier = 1 - speedBonus / 100; // 5% par niveau = 0.05 par niveau
+            const adjustedSpeed = Math.max(100, INITIAL_SPEED * speedMultiplier); // Minimum 100ms
+            const gameInterval = setInterval(moveSnake, adjustedSpeed);
             return ({
                 "SnakeGame.useEffect": ()=>clearInterval(gameInterval)
             })["SnakeGame.useEffect"];
         }
     }["SnakeGame.useEffect"], [
         gameState,
-        moveSnake
+        moveSnake,
+        speedBonus
     ]);
     // Chronomètre
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
@@ -747,7 +916,7 @@ function SnakeGame() {
                         children: "Snake Idle"
                     }, void 0, false, {
                         fileName: "[project]/src/components/SnakeGame.tsx",
-                        lineNumber: 670,
+                        lineNumber: 814,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -755,18 +924,18 @@ function SnakeGame() {
                         children: "Chargement du jeu..."
                     }, void 0, false, {
                         fileName: "[project]/src/components/SnakeGame.tsx",
-                        lineNumber: 671,
+                        lineNumber: 815,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/SnakeGame.tsx",
-                lineNumber: 669,
+                lineNumber: 813,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/SnakeGame.tsx",
-            lineNumber: 668,
+            lineNumber: 812,
             columnNumber: 7
         }, this);
     }
@@ -781,7 +950,108 @@ function SnakeGame() {
                         children: "Snake Idle"
                     }, void 0, false, {
                         fileName: "[project]/src/components/SnakeGame.tsx",
-                        lineNumber: 681,
+                        lineNumber: 825,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "mb-4 text-center",
+                        children: !isDevMode ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "flex justify-center items-center gap-2",
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                    type: "password",
+                                    value: devPassword,
+                                    onChange: (e)=>setDevPassword(e.target.value),
+                                    placeholder: "Mot de passe dev",
+                                    className: "px-3 py-1 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none",
+                                    onKeyPress: (e)=>e.key === 'Enter' && toggleDevMode()
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/SnakeGame.tsx",
+                                    lineNumber: 831,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                    onClick: toggleDevMode,
+                                    className: "px-4 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors",
+                                    children: "Activer Mode Dev"
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/SnakeGame.tsx",
+                                    lineNumber: 839,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/src/components/SnakeGame.tsx",
+                            lineNumber: 830,
+                            columnNumber: 13
+                        }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "bg-purple-900 bg-opacity-50 p-3 rounded-lg",
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "flex justify-center items-center gap-2 mb-2",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                            className: "text-purple-300 font-semibold",
+                                            children: "Mode Développeur Activé"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/SnakeGame.tsx",
+                                            lineNumber: 849,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            onClick: toggleDevMode,
+                                            className: "px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm",
+                                            children: "Désactiver"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/SnakeGame.tsx",
+                                            lineNumber: 850,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/components/SnakeGame.tsx",
+                                    lineNumber: 848,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "flex justify-center items-center gap-2",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                            type: "number",
+                                            value: devPoints,
+                                            onChange: (e)=>setDevPoints(e.target.value),
+                                            placeholder: "Nombre de points",
+                                            className: "px-3 py-1 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none w-32",
+                                            onKeyPress: (e)=>e.key === 'Enter' && addDevPoints()
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/SnakeGame.tsx",
+                                            lineNumber: 858,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            onClick: addDevPoints,
+                                            className: "px-4 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors",
+                                            children: "Ajouter Points"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/SnakeGame.tsx",
+                                            lineNumber: 866,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/components/SnakeGame.tsx",
+                                    lineNumber: 857,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/src/components/SnakeGame.tsx",
+                            lineNumber: 847,
+                            columnNumber: 13
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/SnakeGame.tsx",
+                        lineNumber: 828,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -795,7 +1065,7 @@ function SnakeGame() {
                                     children: "🎮 JEU"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                    lineNumber: 686,
+                                    lineNumber: 880,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -804,18 +1074,18 @@ function SnakeGame() {
                                     children: "🚀 AMÉLIORATIONS"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                    lineNumber: 696,
+                                    lineNumber: 890,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/SnakeGame.tsx",
-                            lineNumber: 685,
+                            lineNumber: 879,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/SnakeGame.tsx",
-                        lineNumber: 684,
+                        lineNumber: 878,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -831,7 +1101,7 @@ function SnakeGame() {
                                             children: "PV"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 713,
+                                            lineNumber: 907,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -842,13 +1112,13 @@ function SnakeGame() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 714,
+                                            lineNumber: 908,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                    lineNumber: 712,
+                                    lineNumber: 906,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -859,7 +1129,7 @@ function SnakeGame() {
                                             children: "Points actuels"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 721,
+                                            lineNumber: 915,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -867,13 +1137,13 @@ function SnakeGame() {
                                             children: currentPoints
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 722,
+                                            lineNumber: 916,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                    lineNumber: 720,
+                                    lineNumber: 914,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -884,7 +1154,7 @@ function SnakeGame() {
                                             children: "Total accumulé"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 727,
+                                            lineNumber: 921,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -892,13 +1162,13 @@ function SnakeGame() {
                                             children: totalPoints
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 728,
+                                            lineNumber: 922,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                    lineNumber: 726,
+                                    lineNumber: 920,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -909,7 +1179,7 @@ function SnakeGame() {
                                             children: "Meilleur score"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 733,
+                                            lineNumber: 927,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -917,13 +1187,13 @@ function SnakeGame() {
                                             children: highScore
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 734,
+                                            lineNumber: 928,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                    lineNumber: 732,
+                                    lineNumber: 926,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -934,7 +1204,7 @@ function SnakeGame() {
                                             children: "Temps restant"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 741,
+                                            lineNumber: 935,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -945,13 +1215,13 @@ function SnakeGame() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 742,
+                                            lineNumber: 936,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                    lineNumber: 738,
+                                    lineNumber: 932,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -962,7 +1232,7 @@ function SnakeGame() {
                                             children: "Valeur pomme"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 749,
+                                            lineNumber: 943,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -973,30 +1243,30 @@ function SnakeGame() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 750,
+                                            lineNumber: 944,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                    lineNumber: 748,
+                                    lineNumber: 942,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/SnakeGame.tsx",
-                            lineNumber: 711,
+                            lineNumber: 905,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/SnakeGame.tsx",
-                        lineNumber: 710,
+                        lineNumber: 904,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/SnakeGame.tsx",
-                lineNumber: 680,
+                lineNumber: 824,
                 columnNumber: 7
             }, this),
             activeTab === "game" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -1016,7 +1286,7 @@ function SnakeGame() {
                                         className: "border border-gray-600 bg-gray-750"
                                     }, `cell-${index}`, false, {
                                         fileName: "[project]/src/components/SnakeGame.tsx",
-                                        lineNumber: 772,
+                                        lineNumber: 966,
                                         columnNumber: 17
                                     }, this)),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1038,7 +1308,7 @@ function SnakeGame() {
                                             }
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 788,
+                                            lineNumber: 982,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1049,13 +1319,13 @@ function SnakeGame() {
                                             id: "apple-fallback"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 797,
+                                            lineNumber: 991,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                    lineNumber: 779,
+                                    lineNumber: 973,
                                     columnNumber: 15
                                 }, this),
                                 snake.map((segment, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1072,18 +1342,18 @@ function SnakeGame() {
                                             className: "w-16 h-16"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 816,
+                                            lineNumber: 1010,
                                             columnNumber: 19
                                         }, this)
                                     }, `snake-${index}`, false, {
                                         fileName: "[project]/src/components/SnakeGame.tsx",
-                                        lineNumber: 806,
+                                        lineNumber: 1000,
                                         columnNumber: 17
                                     }, this))
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/SnakeGame.tsx",
-                            lineNumber: 763,
+                            lineNumber: 957,
                             columnNumber: 13
                         }, this),
                         gameState === "gameOver" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1096,7 +1366,7 @@ function SnakeGame() {
                                         children: timeLeft === 0 ? "Temps écoulé!" : currentPoints === gridWidth * gridHeight - 1 ? "Parfait! Tableau rempli!" : "Game Over!"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/SnakeGame.tsx",
-                                        lineNumber: 829,
+                                        lineNumber: 1023,
                                         columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1107,7 +1377,7 @@ function SnakeGame() {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/SnakeGame.tsx",
-                                        lineNumber: 836,
+                                        lineNumber: 1030,
                                         columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1119,7 +1389,7 @@ function SnakeGame() {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/SnakeGame.tsx",
-                                        lineNumber: 837,
+                                        lineNumber: 1031,
                                         columnNumber: 19
                                     }, this),
                                     timeLeft === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1127,7 +1397,7 @@ function SnakeGame() {
                                         children: "⏰ Les 30 secondes sont terminées"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/SnakeGame.tsx",
-                                        lineNumber: 841,
+                                        lineNumber: 1035,
                                         columnNumber: 21
                                     }, this),
                                     currentPoints === gridWidth * gridHeight - 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1135,24 +1405,24 @@ function SnakeGame() {
                                         children: "🎉 Vous avez rempli tout le tableau!"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/SnakeGame.tsx",
-                                        lineNumber: 846,
+                                        lineNumber: 1040,
                                         columnNumber: 21
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                lineNumber: 828,
+                                lineNumber: 1022,
                                 columnNumber: 17
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/SnakeGame.tsx",
-                            lineNumber: 827,
+                            lineNumber: 1021,
                             columnNumber: 15
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/SnakeGame.tsx",
-                    lineNumber: 762,
+                    lineNumber: 956,
                     columnNumber: 11
                 }, this)
             }, void 0, false),
@@ -1164,6 +1434,8 @@ function SnakeGame() {
                 gridWidth: gridWidth,
                 gridHeight: gridHeight,
                 timeBonus: timeBonus,
+                speedBonus: speedBonus,
+                blueFruitBonus: blueFruitBonus,
                 onBuyUpgrade: buyUpgrade,
                 onPlayGame: ()=>{
                     setActiveTab("game");
@@ -1179,7 +1451,7 @@ function SnakeGame() {
                 healthBonus: healthBonus
             }, void 0, false, {
                 fileName: "[project]/src/components/SnakeGame.tsx",
-                lineNumber: 858,
+                lineNumber: 1052,
                 columnNumber: 9
             }, this),
             activeTab === "game" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1191,7 +1463,7 @@ function SnakeGame() {
                         children: "Commencer à jouer"
                     }, void 0, false, {
                         fileName: "[project]/src/components/SnakeGame.tsx",
-                        lineNumber: 886,
+                        lineNumber: 1082,
                         columnNumber: 13
                     }, this),
                     gameState === "gameOver" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1200,7 +1472,7 @@ function SnakeGame() {
                         children: "Rejouer"
                     }, void 0, false, {
                         fileName: "[project]/src/components/SnakeGame.tsx",
-                        lineNumber: 895,
+                        lineNumber: 1091,
                         columnNumber: 13
                     }, this),
                     gameState === "playing" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1208,13 +1480,13 @@ function SnakeGame() {
                         children: "Utilisez les flèches ou Z/Q/S/D pour contrôler le snake"
                     }, void 0, false, {
                         fileName: "[project]/src/components/SnakeGame.tsx",
-                        lineNumber: 904,
+                        lineNumber: 1100,
                         columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/SnakeGame.tsx",
-                lineNumber: 884,
+                lineNumber: 1080,
                 columnNumber: 9
             }, this),
             activeTab === "game" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1228,14 +1500,14 @@ function SnakeGame() {
                                 children: "Objectif:"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                lineNumber: 915,
+                                lineNumber: 1111,
                                 columnNumber: 16
                             }, this),
                             " Ramassez les pommes pour gagner des points"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/SnakeGame.tsx",
-                        lineNumber: 914,
+                        lineNumber: 1110,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1246,7 +1518,7 @@ function SnakeGame() {
                                 children: "Points:"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                lineNumber: 919,
+                                lineNumber: 1115,
                                 columnNumber: 16
                             }, this),
                             " Chaque pomme vaut ",
@@ -1256,7 +1528,7 @@ function SnakeGame() {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/SnakeGame.tsx",
-                        lineNumber: 918,
+                        lineNumber: 1114,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1267,14 +1539,14 @@ function SnakeGame() {
                                 children: "Temps:"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                lineNumber: 923,
+                                lineNumber: 1119,
                                 columnNumber: 15
                             }, this),
                             " Vous avez 30 secondes par partie!"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/SnakeGame.tsx",
-                        lineNumber: 922,
+                        lineNumber: 1118,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1285,14 +1557,14 @@ function SnakeGame() {
                                 children: "Idle:"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                lineNumber: 926,
+                                lineNumber: 1122,
                                 columnNumber: 16
                             }, this),
                             " Vos points sont conservés même après la mort!"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/SnakeGame.tsx",
-                        lineNumber: 925,
+                        lineNumber: 1121,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1302,33 +1574,33 @@ function SnakeGame() {
                                 children: "Améliorations:"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                lineNumber: 930,
+                                lineNumber: 1126,
                                 columnNumber: 16
                             }, this),
                             " Utilisez vos points pour débloquer des bonus permanents!"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/SnakeGame.tsx",
-                        lineNumber: 929,
+                        lineNumber: 1125,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/SnakeGame.tsx",
-                lineNumber: 913,
+                lineNumber: 1109,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/SnakeGame.tsx",
-        lineNumber: 678,
+        lineNumber: 822,
         columnNumber: 5
     }, this);
 }
-_s(SnakeGame, "xprUp4pDU85ijy/ijCcAJYfio2Q=");
+_s(SnakeGame, "7K0ftRb55iEPB6JyX3m/66vBSn0=");
 _c = SnakeGame;
 // Composant UpgradeTree pour afficher l'arbre d'améliorations
-function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWidth, gridHeight, timeBonus, onBuyUpgrade, onPlayGame, gameState, saveUpgrades, loadUpgrades, applySavedUpgrades, savedUpgrades, healthBonus }) {
+function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWidth, gridHeight, timeBonus, speedBonus, blueFruitBonus, onBuyUpgrade, onPlayGame, gameState, saveUpgrades, loadUpgrades, applySavedUpgrades, savedUpgrades, healthBonus }) {
     const getUpgradeCost = (baseCost, level)=>{
         return Math.floor(baseCost * Math.pow(1.5, level));
     };
@@ -1345,7 +1617,7 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                     children: "Arbre d'Améliorations"
                 }, void 0, false, {
                     fileName: "[project]/src/components/SnakeGame.tsx",
-                    lineNumber: 984,
+                    lineNumber: 1184,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1372,7 +1644,7 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                                         children: upgrade.id === "appleValue" ? "POMMES" : upgrade.id === "healthBonus" ? "PV" : upgrade.id === "gridSize" ? "GRILLE" : upgrade.id === "timeBonus" ? "TEMPS" : "BONUS"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/SnakeGame.tsx",
-                                                        lineNumber: 1018,
+                                                        lineNumber: 1218,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -1380,7 +1652,7 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                                         children: upgrade.name
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/SnakeGame.tsx",
-                                                        lineNumber: 1029,
+                                                        lineNumber: 1229,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1393,13 +1665,13 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/SnakeGame.tsx",
-                                                        lineNumber: 1030,
+                                                        lineNumber: 1230,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                                lineNumber: 1017,
+                                                lineNumber: 1217,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1407,7 +1679,7 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                                 children: upgrade.description
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                                lineNumber: 1035,
+                                                lineNumber: 1235,
                                                 columnNumber: 21
                                             }, this),
                                             !upgrade.unlocked && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1421,7 +1693,7 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                                lineNumber: 1040,
+                                                lineNumber: 1240,
                                                 columnNumber: 23
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1433,22 +1705,24 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                                         upgrade.id === "appleValue" && ` +${appleValue} points/pomme`,
                                                         upgrade.id === "healthBonus" && ` ${10 + healthBonus} PV de départ`,
                                                         upgrade.id === "gridSize" && ` ${gridWidth}x${gridHeight}`,
-                                                        upgrade.id === "timeBonus" && ` +${timeBonus}s par partie`
+                                                        upgrade.id === "timeBonus" && ` +${timeBonus}s par partie`,
+                                                        upgrade.id === "speedBonus" && ` ${speedBonus}% de vitesse`,
+                                                        upgrade.id === "blueFruit" && (blueFruitBonus > 0 ? ` +${blueFruitBonus} PV, +${blueFruitBonus * 2}s par partie` : " Pas possédé")
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                                    lineNumber: 1051,
+                                                    lineNumber: 1251,
                                                     columnNumber: 23
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                                lineNumber: 1050,
+                                                lineNumber: 1250,
                                                 columnNumber: 21
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/SnakeGame.tsx",
-                                        lineNumber: 1016,
+                                        lineNumber: 1216,
                                         columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1464,7 +1738,7 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                                    lineNumber: 1069,
+                                                    lineNumber: 1275,
                                                     columnNumber: 27
                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     className: "text-red-400",
@@ -1474,12 +1748,12 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                                    lineNumber: 1073,
+                                                    lineNumber: 1279,
                                                     columnNumber: 27
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                                lineNumber: 1067,
+                                                lineNumber: 1273,
                                                 columnNumber: 23
                                             }, this),
                                             isMaxed && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1487,7 +1761,7 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                                 children: "MAX"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                                lineNumber: 1081,
+                                                lineNumber: 1287,
                                                 columnNumber: 23
                                             }, this),
                                             !upgrade.unlocked && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1495,30 +1769,30 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                                 children: "🔒"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                                lineNumber: 1087,
+                                                lineNumber: 1293,
                                                 columnNumber: 23
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/SnakeGame.tsx",
-                                        lineNumber: 1065,
+                                        lineNumber: 1271,
                                         columnNumber: 19
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                lineNumber: 1015,
+                                lineNumber: 1215,
                                 columnNumber: 17
                             }, this)
                         }, upgrade.id, false, {
                             fileName: "[project]/src/components/SnakeGame.tsx",
-                            lineNumber: 997,
+                            lineNumber: 1197,
                             columnNumber: 15
                         }, this);
                     })
                 }, void 0, false, {
                     fileName: "[project]/src/components/SnakeGame.tsx",
-                    lineNumber: 989,
+                    lineNumber: 1189,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1532,12 +1806,12 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                 children: gameState === "idle" ? "🎮 Commencer à jouer" : gameState === "gameOver" ? "🔄 Rejouer" : "🎮 Retourner au jeu"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/SnakeGame.tsx",
-                                lineNumber: 1101,
+                                lineNumber: 1307,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/SnakeGame.tsx",
-                            lineNumber: 1100,
+                            lineNumber: 1306,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1551,7 +1825,7 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                             children: "Valeur des pommes"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 1120,
+                                            lineNumber: 1326,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1562,13 +1836,13 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 1121,
+                                            lineNumber: 1327,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                    lineNumber: 1119,
+                                    lineNumber: 1325,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1579,7 +1853,7 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                             children: "Bonus temps"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 1126,
+                                            lineNumber: 1332,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1591,13 +1865,13 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 1127,
+                                            lineNumber: 1333,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                    lineNumber: 1125,
+                                    lineNumber: 1331,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1608,7 +1882,7 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                             children: "Taille de la grille"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 1132,
+                                            lineNumber: 1338,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1620,36 +1894,36 @@ function UpgradeTree({ upgrades, totalPoints, currentPoints, appleValue, gridWid
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/SnakeGame.tsx",
-                                            lineNumber: 1133,
+                                            lineNumber: 1339,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/SnakeGame.tsx",
-                                    lineNumber: 1131,
+                                    lineNumber: 1337,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/SnakeGame.tsx",
-                            lineNumber: 1118,
+                            lineNumber: 1324,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/SnakeGame.tsx",
-                    lineNumber: 1099,
+                    lineNumber: 1305,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/SnakeGame.tsx",
-            lineNumber: 983,
+            lineNumber: 1183,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/components/SnakeGame.tsx",
-        lineNumber: 982,
+        lineNumber: 1182,
         columnNumber: 5
     }, this);
 }

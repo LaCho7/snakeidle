@@ -1,100 +1,19 @@
-[00:00:01.302] Server  LOG      ✓ Ready in 883ms
-[00:00:09.049] Server  LOG      ○ Compiling / ...
-[00:00:10.072] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:05:28.264] Server  LOG      ✓ Compiled in 87ms
-[00:05:28.804] Browser ERROR   The final argument passed to %s changed size between renders. The order and size of this array must remain constant.
-
-Previous: %s
-Incoming: %s useEffect [gameOver, 4, 52, 4] [gameOver, 4, 52]
-[00:05:42.072] Server  LOG      ✓ Compiled in 67ms
-[00:05:47.949] Server  LOG      ✓ Compiled in 54ms
-[00:05:48.802] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:06:14.737] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:06:14.744] Server  LOG      ✓ Compiled in 59ms
-[00:06:15.025] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:06:15.300] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:06:15.810] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:06:23.101] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:06:23.326] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:06:23.340] Server  LOG      ✓ Compiled in 47ms
-[00:06:23.506] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:06:23.804] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:06:31.156] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:06:31.385] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:06:31.402] Server  LOG      ✓ Compiled in 49ms
-[00:06:31.559] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:06:31.812] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:06:36.603] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:06:36.803] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:06:36.818] Server  LOG      ✓ Compiled in 52ms
-[00:06:36.979] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:06:37.810] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:06:44.456] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:06:44.658] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:06:44.672] Server  LOG      ✓ Compiled in 55ms
-[00:06:44.840] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:06:45.813] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:06:58.470] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:06:58.489] Server  LOG      ✓ Compiled in 68ms
-[00:06:58.717] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:06:58.899] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:06:59.808] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:07:04.416] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:07:04.628] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:07:04.642] Server  LOG      ✓ Compiled in 52ms
-[00:07:04.806] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:07:05.805] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:07:11.110] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:07:11.312] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:07:11.327] Server  LOG      ✓ Compiled in 50ms
-[00:07:11.532] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:07:11.808] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:07:20.971] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:07:20.978] Server  LOG      ✓ Compiled in 62ms
-[00:07:21.192] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:07:21.404] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:07:21.812] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:07:27.206] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:07:27.413] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:07:27.427] Server  LOG      ✓ Compiled in 47ms
-[00:07:27.604] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:07:27.802] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:07:33.169] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:07:33.373] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:07:33.387] Server  LOG      ✓ Compiled in 49ms
-[00:07:33.591] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:07:33.813] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:07:45.401] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:07:45.616] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:07:45.631] Server  LOG      ✓ Compiled in 51ms
-[00:07:45.837] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:07:46.809] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:07:54.887] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:07:55.083] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:07:55.098] Server  LOG      ✓ Compiled in 62ms
-[00:07:55.270] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:07:55.809] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:08:01.282] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:08:01.495] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:08:01.510] Server  LOG      ✓ Compiled in 51ms
-[00:08:01.725] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:08:02.814] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:08:07.830] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:08:08.046] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:08:08.060] Server  LOG      ✓ Compiled in 49ms
-[00:08:08.296] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:08:08.812] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:08:39.869] Server  ERROR    ⨯ ReferenceError: gridSize is not defined
-[00:08:40.011] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:08:40.134] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:09:16.018] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:09:16.234] Server  LOG      ✓ Compiled in 63ms
-[00:09:16.448] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:09:50.240] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:09:55.200] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:10:04.159] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:10:11.436] Browser ERROR   uncaughtError: ReferenceError: gridSize is not defined
-[00:11:00.369] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[00:11:00.588] Server  LOG      ✓ Compiled in 49ms
-[00:11:00.812] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:11:30.246] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:01.289] Server  LOG      ✓ Ready in 810ms
+[00:00:28.741] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:37.815] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:05:18.114] Browser ERROR   Error loading blue_apple.png
+[00:08:36.247] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:09:40.089] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:10:48.611] Server  LOG      ✓ Compiled in 115ms
+[00:11:07.562] Server  LOG      ✓ Compiled in 83ms
+[00:11:19.860] Server  LOG      ✓ Compiled in 74ms
+[00:13:42.964] Server  LOG      ✓ Compiled in 73ms
+[00:13:49.065] Server  LOG      ✓ Compiled in 57ms
+[00:14:15.341] Server  LOG      ✓ Compiled in 57ms
+[00:14:52.855] Server  LOG      ✓ Compiled in 103ms
+[00:15:06.742] Server  LOG      ✓ Compiled in 83ms
+[00:15:21.813] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:17:54.643] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:18:30.689] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:20:24.130] Server  LOG      ✓ Compiled in 158ms
+[00:20:32.556] Server  LOG      ✓ Compiled in 129ms

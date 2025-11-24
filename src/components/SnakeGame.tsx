@@ -43,6 +43,13 @@ export default function SnakeGame() {
   const [snake, setSnake] = useState<Position[]>([{ x: 1, y: 1 }]);
   const [direction, setDirection] = useState<Direction>("RIGHT");
   const [food, setFood] = useState<Position>({ x: 2, y: 2 });
+  const [blueFruit, setBlueFruit] = useState<Position | null>(null); // Position du fruit bleu
+  const [isBlueFruitActive, setIsBlueFruitActive] = useState(false); // Pour afficher le fruit bleu
+
+  // État du mode développeur
+  const [isDevMode, setIsDevMode] = useState(false);
+  const [devPassword, setDevPassword] = useState("");
+  const [devPoints, setDevPoints] = useState("");
 
   // Fonction pour calculer la taille de la grille selon la progression
   const getGridDimensions = (level: number) => {
@@ -84,6 +91,8 @@ export default function SnakeGame() {
   const [activeTab, setActiveTab] = useState<"game" | "upgrades">("game");
   const [appleValue, setAppleValue] = useState(1);
   const [timeBonus, setTimeBonus] = useState(0); // Bonus de temps additionnel
+  const [speedBonus, setSpeedBonus] = useState(0); // Bonus de vitesse en pourcentage
+  const [blueFruitBonus, setBlueFruitBonus] = useState(0); // Bonus du fruit bleu
   const [savedUpgrades, setSavedUpgrades] = useState<Upgrade[]>([]); // Améliorations sauvegardées
   const [upgrades, setUpgrades] = useState<Upgrade[]>([
     {
@@ -132,6 +141,32 @@ export default function SnakeGame() {
       requiredLevel: "appleValue",
       requiredLevelValue: 3,
       position: { x: 3, y: 1 },
+      effect: () => {},
+    },
+    {
+      id: "speedBonus",
+      name: "Vitesse",
+      description: "Augmente la vitesse du serpent de 5%",
+      baseCost: 100,
+      level: 0,
+      maxLevel: 15,
+      unlocked: false,
+      requiredLevel: "gridSize",
+      requiredLevelValue: 1, // Débloqué à 5x5
+      position: { x: 1, y: 5 },
+      effect: () => {},
+    },
+    {
+      id: "blueFruit",
+      name: "Fruit Bleu",
+      description: "Ajoute 1 PV et 2 secondes par partie",
+      baseCost: 200,
+      level: 0,
+      maxLevel: 10,
+      unlocked: false,
+      requiredLevel: "gridSize",
+      requiredLevelValue: 2, // Débloqué à 6x6
+      position: { x: 3, y: 3 },
       effect: () => {},
     },
   ]);
@@ -207,6 +242,12 @@ export default function SnakeGame() {
               }
             } else if (upgradeId === "timeBonus") {
               setTimeBonus(newLevel * 2); // +2 secondes par niveau
+            } else if (upgradeId === "speedBonus") {
+              setSpeedBonus(newLevel * 5); // +5% de vitesse par niveau
+            } else if (upgradeId === "blueFruit") {
+              setBlueFruitBonus(newLevel * 1); // +1 PV par niveau
+              setTimeBonus((prev) => prev + newLevel * 2); // +2 secondes par niveau
+              setIsBlueFruitActive(true); // Activer l'affichage du fruit bleu
             }
 
             return { ...u, level: newLevel };
@@ -254,6 +295,9 @@ export default function SnakeGame() {
           appleValue,
           healthBonus,
           timeBonus,
+          speedBonus,
+          blueFruitBonus,
+          isBlueFruitActive,
           gridWidth,
           gridHeight,
           totalPoints,
@@ -295,6 +339,9 @@ export default function SnakeGame() {
               setAppleValue(data.gameState.appleValue || 1);
               setHealthBonus(data.gameState.healthBonus || 0);
               setTimeBonus(data.gameState.timeBonus || 0);
+              setSpeedBonus(data.gameState.speedBonus || 0);
+              setBlueFruitBonus(data.gameState.blueFruitBonus || 0);
+              setIsBlueFruitActive(data.gameState.isBlueFruitActive || false);
               setGridWidth(data.gameState.gridWidth || INITIAL_GRID_SIZE);
               setGridHeight(data.gameState.gridHeight || INITIAL_GRID_SIZE);
               setHighScore(data.gameState.highScore || 0);
@@ -321,6 +368,9 @@ export default function SnakeGame() {
     setAppleValue(1);
     setHealthBonus(0);
     setTimeBonus(0);
+    setSpeedBonus(0);
+    setBlueFruitBonus(0);
+    setIsBlueFruitActive(false);
     setGridWidth(INITIAL_GRID_SIZE);
     setGridHeight(INITIAL_GRID_SIZE);
 
@@ -337,6 +387,12 @@ export default function SnakeGame() {
           setHealthBonus((prev) => prev + levelDiff);
         } else if (baseUpgrade.id === "timeBonus") {
           setTimeBonus((prev) => prev + savedUpgrade.level * 2);
+        } else if (baseUpgrade.id === "speedBonus") {
+          setSpeedBonus(savedUpgrade.level * 5);
+        } else if (baseUpgrade.id === "blueFruit") {
+          setBlueFruitBonus(savedUpgrade.level * 1);
+          setTimeBonus((prev) => prev + savedUpgrade.level * 2);
+          setIsBlueFruitActive(true);
         } else if (baseUpgrade.id === "gridSize") {
           const dimensions = getGridDimensions(savedUpgrade.level);
           setGridWidth(dimensions.width);
@@ -352,6 +408,32 @@ export default function SnakeGame() {
     setSavedUpgrades([]); // Vider les améliorations sauvegardées après application
     alert("Améliorations appliquées avec succès!");
   }, [savedUpgrades, upgrades]);
+
+  // Fonctions du mode développeur
+  const toggleDevMode = useCallback(() => {
+    if (isDevMode) {
+      setIsDevMode(false);
+      setDevPassword("");
+    } else {
+      if (devPassword === "dev") {
+        setIsDevMode(true);
+        alert("Mode développeur activé !");
+      } else {
+        alert("Mot de passe incorrect !");
+      }
+    }
+  }, [isDevMode, devPassword]);
+
+  const addDevPoints = useCallback(() => {
+    const points = parseInt(devPoints);
+    if (!isNaN(points) && points > 0) {
+      setTotalPoints(prev => prev + points);
+      setDevPoints("");
+      alert(`${points} points ajoutés !`);
+    } else {
+      alert("Veuillez entrer un nombre valide !");
+    }
+  }, [devPoints]);
 
   // Générer une position aléatoire pour la nourriture
   const generateRandomFood = useCallback(
@@ -382,6 +464,36 @@ export default function SnakeGame() {
     [gridWidth, gridHeight],
   );
 
+  // Générer le fruit bleu (en plus de la pomme rouge)
+  const generateBlueFruit = useCallback(
+    (currentSnake: Position[], foodPosition: Position): Position | null => {
+      if (!isBlueFruitActive) return null;
+
+      // Créer une liste de toutes les positions possibles en excluant le serpent ET la pomme rouge
+      const availablePositions: Position[] = [];
+
+      for (let x = 0; x < gridWidth; x++) {
+        for (let y = 0; y < gridHeight; y++) {
+          const isOccupied = currentSnake.some(
+            (segment) => segment.x === x && segment.y === y
+          );
+          const isFood = foodPosition.x === x && foodPosition.y === y;
+
+          if (!isOccupied && !isFood) {
+            availablePositions.push({ x, y });
+          }
+        }
+      }
+
+      if (availablePositions.length === 0) return null;
+
+      // Choisir une position aléatoire parmi les positions disponibles
+      const randomIndex = Math.floor(Math.random() * availablePositions.length);
+      return availablePositions[randomIndex];
+    },
+    [gridWidth, gridHeight, isBlueFruitActive],
+  );
+
   // Initialiser le jeu
   const startGame = () => {
     const initialSnake = [{ x: 1, y: 1 }];
@@ -395,10 +507,17 @@ export default function SnakeGame() {
     const newFood = isMounted
       ? generateRandomFood(initialSnake)
       : { x: 2, y: 2 };
-    setFood(newFood || { x: 2, y: 2 });
+    const foodPosition = newFood || { x: 2, y: 2 };
+    setFood(foodPosition);
+
+    // Générer le fruit bleu si activé
+    const newBlueFruit = isMounted
+      ? generateBlueFruit(initialSnake, foodPosition)
+      : null;
+    setBlueFruit(newBlueFruit);
 
     setCurrentPoints(0);
-    setHealthPoints(10 + healthBonus); // Réinitialiser les PV avec le bonus
+    setHealthPoints(10 + healthBonus + blueFruitBonus); // Réinitialiser les PV avec le bonus + fruit bleu
     setTimeLeft(baseTime + timeBonus); // Utiliser le temps de base + le bonus
     setGameState("playing");
   };
@@ -450,7 +569,8 @@ export default function SnakeGame() {
 
     newSnake.unshift(head);
 
-    // Vérifier si le snake mange la nourriture
+    // Vérifier si le snake mange la nourriture (pomme rouge)
+    let ateFood = false;
     if (head.x === food.x && head.y === food.y) {
       setCurrentPoints((prev) => prev + appleValue);
       setHealthPoints((prev) => {
@@ -467,13 +587,30 @@ export default function SnakeGame() {
         return;
       }
       setFood(newFoodPosition);
-    } else {
+      ateFood = true;
+    }
+
+    // Vérifier si le snake mange le fruit bleu
+    let ateBlueFruit = false;
+    if (blueFruit && head.x === blueFruit.x && head.y === blueFruit.y) {
+      setCurrentPoints((prev) => prev + appleValue * 2); // Double les points
+      setHealthPoints((prev) => {
+        const newHP = prev + 1; // +1 PV au lieu de -1
+        return newHP;
+      }); // Le serpent gagne 1 PV avec le fruit bleu
+      const newBlueFruitPosition = generateBlueFruit(newSnake, food);
+      setBlueFruit(newBlueFruitPosition);
+      ateBlueFruit = true;
+    }
+
+    // Si le serpent n'a rien mangé, il rétrécit
+    if (!ateFood && !ateBlueFruit) {
       newSnake.pop();
     }
 
     snakeRef.current = newSnake;
     setSnake(newSnake);
-  }, [food, gameState, generateRandomFood, gridWidth, gridHeight, appleValue]);
+  }, [food, blueFruit, gameState, generateRandomFood, generateBlueFruit, gridWidth, gridHeight, appleValue]);
 
   // Gérer la fin de partie
   useEffect(() => {
@@ -491,9 +628,13 @@ export default function SnakeGame() {
   useEffect(() => {
     if (gameState !== "playing") return;
 
-    const gameInterval = setInterval(moveSnake, INITIAL_SPEED);
+    // Calculer la vitesse avec le bonus (plus le bonus est élevé, plus l'intervalle est court)
+    const speedMultiplier = 1 - (speedBonus / 100); // 5% par niveau = 0.05 par niveau
+    const adjustedSpeed = Math.max(100, INITIAL_SPEED * speedMultiplier); // Minimum 100ms
+
+    const gameInterval = setInterval(moveSnake, adjustedSpeed);
     return () => clearInterval(gameInterval);
-  }, [gameState, moveSnake]);
+  }, [gameState, moveSnake, speedBonus]);
 
   // Chronomètre
   useEffect(() => {
@@ -511,6 +652,18 @@ export default function SnakeGame() {
 
     return () => clearInterval(timerInterval);
   }, [gameState]);
+
+  // Gérer le fruit bleu quand le mode est activé/désactivé
+  useEffect(() => {
+    if (isBlueFruitActive && gameState === "playing" && !blueFruit) {
+      // Générer le fruit bleu si le mode est activé et qu'il n'y en a pas
+      const newBlueFruit = generateBlueFruit(snake, food);
+      setBlueFruit(newBlueFruit);
+    } else if (!isBlueFruitActive && blueFruit) {
+      // Retirer le fruit bleu si le mode est désactivé
+      setBlueFruit(null);
+    }
+  }, [isBlueFruitActive, gameState, blueFruit, snake, food, generateBlueFruit]);
 
   // Vérifier si un changement de direction causerait une collision
   const wouldCollideWithSelf = useCallback(
@@ -683,6 +836,56 @@ export default function SnakeGame() {
       <div className="w-full max-w-4xl mb-6">
         <h1 className="text-4xl font-bold text-center mb-4">Snake Idle</h1>
 
+        {/* Contrôles mode développeur */}
+        <div className="mb-4 text-center">
+          {!isDevMode ? (
+            <div className="flex justify-center items-center gap-2">
+              <input
+                type="password"
+                value={devPassword}
+                onChange={(e) => setDevPassword(e.target.value)}
+                placeholder="Mot de passe dev"
+                className="px-3 py-1 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+                onKeyPress={(e) => e.key === 'Enter' && toggleDevMode()}
+              />
+              <button
+                onClick={toggleDevMode}
+                className="px-4 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+              >
+                Activer Mode Dev
+              </button>
+            </div>
+          ) : (
+            <div className="bg-purple-900 bg-opacity-50 p-3 rounded-lg">
+              <div className="flex justify-center items-center gap-2 mb-2">
+                <span className="text-purple-300 font-semibold">Mode Développeur Activé</span>
+                <button
+                  onClick={toggleDevMode}
+                  className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm"
+                >
+                  Désactiver
+                </button>
+              </div>
+              <div className="flex justify-center items-center gap-2">
+                <input
+                  type="number"
+                  value={devPoints}
+                  onChange={(e) => setDevPoints(e.target.value)}
+                  placeholder="Nombre de points"
+                  className="px-3 py-1 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none w-32"
+                  onKeyPress={(e) => e.key === 'Enter' && addDevPoints()}
+                />
+                <button
+                  onClick={addDevPoints}
+                  className="px-4 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                >
+                  Ajouter Points
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Onglets */}
         <div className="flex justify-center mb-6">
           <div className="bg-gray-800 p-1 rounded-lg">
@@ -791,7 +994,7 @@ export default function SnakeGame() {
                 <img
                   src="/Graphics/apple.png"
                   alt="Food"
-                  className="w-12 h-12"
+                  className="w-12 h-12 opacity-90"
                   onError={(e) => {
                     console.error("Error loading apple.png");
                     e.currentTarget.style.display = "none";
@@ -803,6 +1006,34 @@ export default function SnakeGame() {
                   id="apple-fallback"
                 />
               </div>
+
+              {/* Fruit Bleu */}
+              {blueFruit && (
+                <div
+                  className="absolute flex items-center justify-center"
+                  style={{
+                    left: `${blueFruit.x * CELL_SIZE}px`,
+                    top: `${blueFruit.y * CELL_SIZE}px`,
+                    width: `${CELL_SIZE}px`,
+                    height: `${CELL_SIZE}px`,
+                  }}
+                >
+                  <img
+                    src="/Graphics/blue_apple.png"
+                    alt="Blue Fruit"
+                    className="w-12 h-12 opacity-90"
+                    onError={(e) => {
+                      console.error("Error loading blue_apple.png");
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                  <div
+                    className="w-8 h-8 bg-blue-500 rounded-full"
+                    style={{ display: "none" }}
+                    id="blue-fruit-fallback"
+                  />
+                </div>
+              )}
 
               {/* Snake */}
               {snake.map((segment, index) => (
@@ -866,6 +1097,8 @@ export default function SnakeGame() {
           gridWidth={gridWidth}
           gridHeight={gridHeight}
           timeBonus={timeBonus}
+          speedBonus={speedBonus}
+          blueFruitBonus={blueFruitBonus}
           onBuyUpgrade={buyUpgrade}
           onPlayGame={() => {
             setActiveTab("game");
@@ -948,6 +1181,8 @@ function UpgradeTree({
   gridWidth,
   gridHeight,
   timeBonus,
+  speedBonus,
+  blueFruitBonus,
   onBuyUpgrade,
   onPlayGame,
   gameState,
@@ -964,6 +1199,8 @@ function UpgradeTree({
   gridWidth: number;
   gridHeight: number;
   timeBonus: number;
+  speedBonus: number;
+  blueFruitBonus: number;
   onBuyUpgrade: (id: string) => void;
   onPlayGame: () => void;
   gameState: GameState;
@@ -1061,6 +1298,12 @@ function UpgradeTree({
                           ` ${gridWidth}x${gridHeight}`}
                         {upgrade.id === "timeBonus" &&
                           ` +${timeBonus}s par partie`}
+                        {upgrade.id === "speedBonus" &&
+                          ` ${speedBonus}% de vitesse`}
+                        {upgrade.id === "blueFruit" &&
+                          (blueFruitBonus > 0
+                            ? ` +${blueFruitBonus} PV, +${blueFruitBonus * 2}s par partie`
+                            : " Pas possédé")}
                       </div>
                     </div>
                   </div>
