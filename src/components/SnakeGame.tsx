@@ -7,6 +7,30 @@ type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
 type Position = { x: number; y: number };
 type GameState = "playing" | "gameOver" | "idle";
 
+// Types pour la nourriture
+type FoodType = "apple" | "goldenApple" | "blueFruit";
+type FoodItem = {
+  position: Position;
+  type: FoodType;
+};
+
+// Types pour la bombe
+type BombState = "active" | "exploded" | "disarmed";
+type Bomb = {
+  position: Position;
+  timer: number;
+  maxTimer: number;
+  state: BombState;
+};
+
+// Types pour les bonus actifs
+type ActiveBonus = {
+  type: "doubleScore" | "permanentPoints" | "extraHealth" | "extraTime";
+  value: number;
+  duration?: number; // Pour les bonus temporaires
+  permanent?: boolean; // Pour les bonus permanents
+};
+
 // Types pour les améliorations
 type Upgrade = {
   id: string;
@@ -42,7 +66,28 @@ export default function SnakeGame() {
   // État du snake
   const [snake, setSnake] = useState<Position[]>([{ x: 1, y: 1 }]);
   const [direction, setDirection] = useState<Direction>("RIGHT");
-  const [food, setFood] = useState<Position>({ x: 2, y: 2 });
+
+  // État de la nourriture (remplace food et blueFruit)
+  const [foodItems, setFoodItems] = useState<FoodItem[]>([{ position: { x: 2, y: 2 }, type: "apple" }]);
+
+  // États pour les améliorations
+  const [goldenAppleLevel, setGoldenAppleLevel] = useState(0); // Niveau de l'amélioration pomme d'or
+  const [bombSystemLevel, setBombSystemLevel] = useState(0); // Niveau de l'amélioration système de bombe
+
+  // État de la bombe
+  const [bomb, setBomb] = useState<Bomb | null>(null);
+  const [bombSpawnTimer, setBombSpawnTimer] = useState(0); // Timer avant apparition des bombes (secondes)
+
+  // États pour les bonus actifs
+  const [activeBonuses, setActiveBonuses] = useState<ActiveBonus[]>([]);
+  const [isDoubleScoreActive, setIsDoubleScoreActive] = useState(false);
+  const [permanentPointsBonus, setPermanentPointsBonus] = useState(0); // +0.1% par point
+
+  // État du multiplicateur de pomme d'or
+  const [goldenAppleMultiplier, setGoldenAppleMultiplier] = useState(0); // Nombre de pommes bonus restantes (0-3)
+
+  // Anciens états maintenus pour compatibilité
+  const [food, setFood] = useState<Position>({ x: 2, y: 2 }); // Position de la pomme rouge (compatibilité)
   const [blueFruit, setBlueFruit] = useState<Position | null>(null); // Position du fruit bleu
   const [isBlueFruitActive, setIsBlueFruitActive] = useState(false); // Pour afficher le fruit bleu
 
@@ -151,15 +196,15 @@ export default function SnakeGame() {
       level: 0,
       maxLevel: 15,
       unlocked: false,
-      requiredLevel: "gridSize",
-      requiredLevelValue: 1, // Débloqué à 5x5
+      requiredLevel: "healthBonus",
+      requiredLevelValue: 5, // Débloqué quand les PV de départ atteignent le niveau 5
       position: { x: 1, y: 5 },
       effect: () => {},
     },
     {
       id: "blueFruit",
       name: "Fruit Bleu",
-      description: "Ajoute 1 PV et 2 secondes par partie",
+      description: "Active le fruit bleu. Effets : +1 PV, +2s temps/partie, 0.5x points (vs pomme rouge)",
       baseCost: 200,
       level: 0,
       maxLevel: 10,
@@ -169,15 +214,128 @@ export default function SnakeGame() {
       position: { x: 3, y: 3 },
       effect: () => {},
     },
+    {
+      id: "goldenApple",
+      name: "Pomme d'Or",
+      description: "1% de chance par niveau d'apparaître (valeur 10x normale)",
+      baseCost: 500,
+      level: 0,
+      maxLevel: 100,
+      unlocked: false,
+      requiredLevel: "gridSize",
+      requiredLevelValue: 4, // Débloqué à terrain 7x7 (gridSize niveau 4)
+      position: { x: 5, y: 3 },
+      effect: () => {},
+    },
+    {
+      id: "bombSystem",
+      name: "Système Bombe",
+      description: "Place des bombes explosives. Apparaissent après 5s de jeu. Si touchées : -75% PV. Si elles explosent seules : bonus aléatoire parmi :\n• +0.1% permanent points/pomme\n• Double score 30s\n• +1 PV permanent\n• +10s temps de jeu",
+      baseCost: 1000,
+      level: 0,
+      maxLevel: 10,
+      unlocked: false,
+      requiredLevel: "gridSize",
+      requiredLevelValue: 3, // Débloqué à terrain 6x6 (gridSize niveau 3)
+      position: { x: 5, y: 5 },
+      effect: () => {},
+    },
   ]);
 
-  // Gérer le montage du composant
+  // Charger les données depuis localStorage au montage
   useEffect(() => {
+    // S'assurer qu'on est côté client
+    if (typeof window === 'undefined') return;
+
+    const loadGameState = () => {
+      try {
+        const savedState = localStorage.getItem('snakeGameState');
+        if (savedState) {
+          const state = JSON.parse(savedState);
+
+          // Restaurer les améliorations
+          if (state.upgrades) {
+            setUpgrades(state.upgrades);
+          }
+
+          // Restaurer les états du jeu
+          if (state.gameState) {
+            setTotalPoints(state.gameState.totalPoints || 0);
+            setHighScore(state.gameState.highScore || 0);
+            setAppleValue(state.gameState.appleValue || 1);
+            setHealthBonus(state.gameState.healthBonus || 0);
+            setTimeBonus(state.gameState.timeBonus || 0);
+            setSpeedBonus(state.gameState.speedBonus || 0);
+            setBlueFruitBonus(state.gameState.blueFruitBonus || 0);
+            setIsBlueFruitActive(state.gameState.isBlueFruitActive || false);
+            setGoldenAppleLevel(state.gameState.goldenAppleLevel || 0);
+            setBombSystemLevel(state.gameState.bombSystemLevel || 0);
+            setPermanentPointsBonus(state.gameState.permanentPointsBonus || 0);
+            setGridWidth(state.gameState.gridWidth || INITIAL_GRID_SIZE);
+            setGridHeight(state.gameState.gridHeight || INITIAL_GRID_SIZE);
+            setGoldenAppleMultiplier(state.gameState.goldenAppleMultiplier || 0);
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement de l\'état du jeu:', error);
+      }
+    };
+
+    loadGameState();
     setIsMounted(true);
+
     // Initialiser la nourriture aléatoirement seulement côté client
     const initialSnake = [{ x: 1, y: 1 }];
-    setFood(generateRandomFood(initialSnake) || { x: 2, y: 2 });
+    const newFood = generateRandomFood(initialSnake) || { x: 2, y: 2 };
+    setFoodItems([{ position: newFood, type: "apple" }]);
+
+    // Pour compatibilité avec l'ancien code
+    setFood(newFood);
   }, []);
+
+  // Sauvegarder l'état du jeu dans localStorage
+  const saveGameState = useCallback(() => {
+    // S'assurer qu'on est côté client
+    if (typeof window === 'undefined') return;
+
+    try {
+      const gameState = {
+        upgrades: upgrades,
+        gameState: {
+          totalPoints,
+          highScore,
+          appleValue,
+          healthBonus,
+          timeBonus,
+          speedBonus,
+          blueFruitBonus,
+          isBlueFruitActive,
+          goldenAppleLevel,
+          bombSystemLevel,
+          permanentPointsBonus,
+          gridWidth,
+          gridHeight,
+          goldenAppleMultiplier,
+        },
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem('snakeGameState', JSON.stringify(gameState));
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde de l\'état du jeu:', error);
+    }
+  }, [upgrades, totalPoints, highScore, appleValue, healthBonus, timeBonus, speedBonus, blueFruitBonus, isBlueFruitActive, goldenAppleLevel, bombSystemLevel, permanentPointsBonus, gridWidth, gridHeight, goldenAppleMultiplier]);
+
+  // Sauvegarder automatiquement quand l'état change (mais pas trop fréquemment)
+  useEffect(() => {
+    // Sauvegarder seulement côté client et après le montage
+    if (!isMounted || typeof window === 'undefined') return;
+
+    const timeoutId = setTimeout(() => {
+      saveGameState();
+    }, 500); // Délai de 500ms pour éviter les sauvegardes excessives
+
+    return () => clearTimeout(timeoutId);
+  }, [totalPoints, upgrades, highScore, appleValue, healthBonus, timeBonus, speedBonus, blueFruitBonus, isBlueFruitActive, goldenAppleLevel, bombSystemLevel, permanentPointsBonus, gridWidth, gridHeight, goldenAppleMultiplier, isMounted]);
 
   // Vérifier les déverrouillages d'améliorations
   const checkUnlocks = useCallback((updatedUpgrades: Upgrade[]) => {
@@ -246,8 +404,11 @@ export default function SnakeGame() {
               setSpeedBonus(newLevel * 5); // +5% de vitesse par niveau
             } else if (upgradeId === "blueFruit") {
               setBlueFruitBonus(newLevel * 1); // +1 PV par niveau
-              setTimeBonus((prev) => prev + newLevel * 2); // +2 secondes par niveau
               setIsBlueFruitActive(true); // Activer l'affichage du fruit bleu
+            } else if (upgradeId === "goldenApple") {
+              setGoldenAppleLevel(newLevel);
+            } else if (upgradeId === "bombSystem") {
+              setBombSystemLevel(newLevel);
             }
 
             return { ...u, level: newLevel };
@@ -271,6 +432,9 @@ export default function SnakeGame() {
 
   // Sauvegarder les améliorations actuelles
   const saveUpgrades = useCallback(() => {
+    // S'assurer qu'on est côté client
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
     const currentUpgradesData = upgrades.map((u) => ({
       id: u.id,
       name: u.name,
@@ -309,15 +473,20 @@ export default function SnakeGame() {
       2,
     );
 
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `snake_idle_upgrades_${Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    try {
+      const dataBlob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `snake_idle_upgrades_${Date.now()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur lors du téléchargement du fichier:', error);
+      alert('Erreur lors du téléchargement du fichier de sauvegarde');
+    }
   }, [upgrades, appleValue, timeBonus, gridWidth, gridHeight, totalPoints, highScore]);
 
   // Charger les améliorations depuis un fichier
@@ -391,7 +560,6 @@ export default function SnakeGame() {
           setSpeedBonus(savedUpgrade.level * 5);
         } else if (baseUpgrade.id === "blueFruit") {
           setBlueFruitBonus(savedUpgrade.level * 1);
-          setTimeBonus((prev) => prev + savedUpgrade.level * 2);
           setIsBlueFruitActive(true);
         } else if (baseUpgrade.id === "gridSize") {
           const dimensions = getGridDimensions(savedUpgrade.level);
@@ -435,10 +603,9 @@ export default function SnakeGame() {
     }
   }, [devPoints]);
 
-  // Générer une position aléatoire pour la nourriture
-  const generateRandomFood = useCallback(
-    (currentSnake: Position[]): Position | null => {
-      // Créer une liste de toutes les positions possibles
+  // Obtenir une position aléatoire non occupée
+  const getAvailablePosition = useCallback(
+    (currentSnake: Position[], excludePositions: Position[] = []): Position | null => {
       const availablePositions: Position[] = [];
 
       for (let x = 0; x < gridWidth; x++) {
@@ -446,40 +613,11 @@ export default function SnakeGame() {
           const isOccupied = currentSnake.some(
             (segment) => segment.x === x && segment.y === y,
           );
-          if (!isOccupied) {
-            availablePositions.push({ x, y });
-          }
-        }
-      }
-
-      // S'il n'y a plus de place disponible, retourner null
-      if (availablePositions.length === 0) {
-        return null;
-      }
-
-      // Choisir une position aléatoire parmi les positions disponibles
-      const randomIndex = Math.floor(Math.random() * availablePositions.length);
-      return availablePositions[randomIndex];
-    },
-    [gridWidth, gridHeight],
-  );
-
-  // Générer le fruit bleu (en plus de la pomme rouge)
-  const generateBlueFruit = useCallback(
-    (currentSnake: Position[], foodPosition: Position): Position | null => {
-      if (!isBlueFruitActive) return null;
-
-      // Créer une liste de toutes les positions possibles en excluant le serpent ET la pomme rouge
-      const availablePositions: Position[] = [];
-
-      for (let x = 0; x < gridWidth; x++) {
-        for (let y = 0; y < gridHeight; y++) {
-          const isOccupied = currentSnake.some(
-            (segment) => segment.x === x && segment.y === y
+          const isExcluded = excludePositions.some(
+            (pos) => pos.x === x && pos.y === y
           );
-          const isFood = foodPosition.x === x && foodPosition.y === y;
 
-          if (!isOccupied && !isFood) {
+          if (!isOccupied && !isExcluded) {
             availablePositions.push({ x, y });
           }
         }
@@ -487,12 +625,175 @@ export default function SnakeGame() {
 
       if (availablePositions.length === 0) return null;
 
-      // Choisir une position aléatoire parmi les positions disponibles
       const randomIndex = Math.floor(Math.random() * availablePositions.length);
       return availablePositions[randomIndex];
     },
-    [gridWidth, gridHeight, isBlueFruitActive],
+    [gridWidth, gridHeight],
   );
+
+  // Générer une position aléatoire pour la nourriture (ancienne fonction pour compatibilité)
+  const generateRandomFood = useCallback(
+    (currentSnake: Position[]): Position | null => {
+      return getAvailablePosition(currentSnake);
+    },
+    [getAvailablePosition],
+  );
+
+  // Générer les objets de nourriture (pour initialisation complète)
+  const generateFoodItems = useCallback(
+    (currentSnake: Position[]): FoodItem[] => {
+      const foodItems: FoodItem[] = [];
+      const occupiedPositions: Position[] = [];
+      let attempts = 0;
+      const maxAttempts = 100; // Éviter les boucles infinies
+
+      // Fonction helper pour générer une position avec tentative limitée
+      const tryGetPosition = (snake: Position[], occupied: Position[]): Position | null => {
+        attempts++;
+        if (attempts > maxAttempts) return null;
+        return getAvailablePosition(snake, occupied);
+      };
+
+      // Toujours générer une pomme rouge normale
+      const applePosition = tryGetPosition(currentSnake, occupiedPositions);
+      if (applePosition) {
+        foodItems.push({ position: applePosition, type: "apple" });
+        occupiedPositions.push(applePosition);
+      }
+
+      // Générer une pomme d'or si l'amélioration est active
+      if (goldenAppleLevel > 0 && attempts < maxAttempts) {
+        const goldenAppleChance = goldenAppleLevel * 0.01; // 1% par niveau
+        if (Math.random() < goldenAppleChance) {
+          const goldenApplePosition = tryGetPosition(currentSnake, occupiedPositions);
+          if (goldenApplePosition) {
+            foodItems.push({ position: goldenApplePosition, type: "goldenApple" });
+            occupiedPositions.push(goldenApplePosition);
+          }
+        }
+      }
+
+      // Générer un fruit bleu si l'amélioration est active
+      if (isBlueFruitActive && attempts < maxAttempts) {
+        const blueFruitPosition = tryGetPosition(currentSnake, occupiedPositions);
+        if (blueFruitPosition) {
+          foodItems.push({ position: blueFruitPosition, type: "blueFruit" });
+          occupiedPositions.push(blueFruitPosition);
+        }
+      }
+
+      return foodItems;
+    },
+    [goldenAppleLevel, isBlueFruitActive, getAvailablePosition],
+  );
+
+  // Générer un seul type de nourriture pour remplacer celle qui a été mangée
+  const generateSingleFoodItem = useCallback(
+    (currentSnake: Position[], existingFood: FoodItem[], foodType: FoodType): FoodItem | null => {
+      const occupiedPositions = [
+        ...currentSnake,
+        ...existingFood.map(f => f.position),
+      ];
+
+      const position = getAvailablePosition([], occupiedPositions);
+      if (!position) return null;
+
+      return { position, type: foodType };
+    },
+    [getAvailablePosition],
+  );
+
+  // Générer le fruit bleu (en plus de la pomme rouge) - ancienne fonction pour compatibilité
+  const generateBlueFruit = useCallback(
+    (currentSnake: Position[], foodPosition: Position): Position | null => {
+      if (!isBlueFruitActive) return null;
+      return getAvailablePosition(currentSnake, [foodPosition]);
+    },
+    [isBlueFruitActive, getAvailablePosition],
+  );
+
+  // Générer une bombe
+  const generateBomb = useCallback(
+    (currentSnake: Position[], existingFood: FoodItem[]): Bomb | null => {
+      if (bombSystemLevel === 0) return null;
+
+      // Les bombes n'apparaissent qu'après 5 secondes de jeu
+      if (bombSpawnTimer < 5) return null;
+
+      // Probabilité d'apparition de la bombe (augmente avec le niveau)
+      const bombChance = Math.min(0.3, bombSystemLevel * 0.05); // Max 30% de chance
+      if (Math.random() > bombChance) return null;
+
+      const occupiedPositions = [
+        ...currentSnake,
+        ...existingFood.map(f => f.position),
+      ];
+
+      const bombPosition = getAvailablePosition([], occupiedPositions);
+      if (!bombPosition) return null;
+
+      const baseTimer = 15; // 15 secondes de base
+      const timerReduction = bombSystemLevel; // -1 seconde par niveau
+      const actualTimer = Math.max(5, baseTimer - timerReduction); // Minimum 5 secondes
+
+      return {
+        position: bombPosition,
+        timer: actualTimer,
+        maxTimer: actualTimer,
+        state: "active",
+      };
+    },
+    [bombSystemLevel, bombSpawnTimer, getAvailablePosition],
+  );
+
+  // Appliquer un bonus aléatoire de la bombe
+  const applyBombBonus = useCallback(() => {
+    const bonuses = [
+      {
+        type: "permanentPoints" as const,
+        value: 0.1, // +0.1% permanent par pomme
+        permanent: true,
+      },
+      {
+        type: "doubleScore" as const,
+        value: 1,
+        duration: 30, // 30 secondes
+      },
+      {
+        type: "extraHealth" as const,
+        value: 1,
+        permanent: true,
+      },
+      {
+        type: "extraTime" as const,
+        value: 10,
+      },
+    ];
+
+    const randomBonus = bonuses[Math.floor(Math.random() * bonuses.length)];
+
+    switch (randomBonus.type) {
+      case "permanentPoints":
+        setPermanentPointsBonus(prev => prev + randomBonus.value);
+        break;
+      case "doubleScore":
+        setIsDoubleScoreActive(true);
+        setActiveBonuses(prev => [...prev, randomBonus]);
+        setTimeout(() => {
+          setIsDoubleScoreActive(false);
+          setActiveBonuses(prev => prev.filter(b => b.type !== "doubleScore"));
+        }, randomBonus.duration * 1000);
+        break;
+      case "extraHealth":
+        setHealthPoints(prev => prev + randomBonus.value);
+        break;
+      case "extraTime":
+        setTimeLeft(prev => prev + randomBonus.value);
+        break;
+    }
+
+    setActiveBonuses(prev => [...prev, randomBonus]);
+  }, []);
 
   // Initialiser le jeu
   const startGame = () => {
@@ -503,22 +804,36 @@ export default function SnakeGame() {
     setSnake(initialSnake);
     setDirection("RIGHT");
 
-    // Générer la nourriture seulement si le composant est monté
-    const newFood = isMounted
-      ? generateRandomFood(initialSnake)
-      : { x: 2, y: 2 };
-    const foodPosition = newFood || { x: 2, y: 2 };
-    setFood(foodPosition);
+    // Générer les objets de nourriture avec le nouveau système
+    if (isMounted) {
+      const newFoodItems = generateFoodItems(initialSnake);
+      setFoodItems(newFoodItems);
 
-    // Générer le fruit bleu si activé
-    const newBlueFruit = isMounted
-      ? generateBlueFruit(initialSnake, foodPosition)
-      : null;
-    setBlueFruit(newBlueFruit);
+      // Pour compatibilité avec l'ancien code
+      const appleFood = newFoodItems.find(f => f.type === "apple");
+      if (appleFood) {
+        setFood(appleFood.position);
+      }
+
+      const blueFruitFood = newFoodItems.find(f => f.type === "blueFruit");
+      setBlueFruit(blueFruitFood?.position || null);
+
+      // Générer une bombe si activé
+      const newBomb = generateBomb(initialSnake, newFoodItems);
+      setBomb(newBomb);
+    } else {
+      // Fallback pour le rendu serveur
+      setFoodItems([{ position: { x: 2, y: 2 }, type: "apple" }]);
+      setFood({ x: 2, y: 2 });
+      setBlueFruit(null);
+      setBomb(null);
+    }
 
     setCurrentPoints(0);
-    setHealthPoints(10 + healthBonus + blueFruitBonus); // Réinitialiser les PV avec le bonus + fruit bleu
+    setHealthPoints(10 + healthBonus); // Réinitialiser les PV avec le bonus de santé uniquement
     setTimeLeft(baseTime + timeBonus); // Utiliser le temps de base + le bonus
+    setGoldenAppleMultiplier(0); // Réinitialiser le multiplicateur de pomme d'or
+    setBombSpawnTimer(0); // Réinitialiser le timer d'apparition des bombes
     setGameState("playing");
   };
 
@@ -554,8 +869,21 @@ export default function SnakeGame() {
       return;
     }
 
+    // Collision avec la bombe
+    if (bomb && bomb.state === "active" && head.x === bomb.position.x && head.y === bomb.position.y) {
+      // Le serpent perd 75% de ses PV
+      setHealthPoints((prev) => {
+        const newHP = Math.floor(prev * 0.25); // Conserve 25% des PV
+        if (newHP <= 0) {
+          setGameState("gameOver");
+        }
+        return newHP;
+      });
+      setBomb(null); // Retirer la bombe
+      return;
+    }
+
     // Collision avec soi-même
-    // On exclut le dernier segment car il va se déplacer (cas où le serpent mange de la nourriture)
     const segmentsToCheck =
       newSnake.length > 1 ? newSnake.slice(0, -1) : newSnake;
     if (
@@ -569,48 +897,139 @@ export default function SnakeGame() {
 
     newSnake.unshift(head);
 
-    // Vérifier si le snake mange la nourriture (pomme rouge)
+    // Vérifier si le snake mange de la nourriture (nouveau système)
     let ateFood = false;
-    if (head.x === food.x && head.y === food.y) {
-      setCurrentPoints((prev) => prev + appleValue);
-      setHealthPoints((prev) => {
-        const newHP = prev - 1;
-        if (newHP <= 0) {
-          setGameState("gameOver");
+    const eatenFoodIndices: number[] = [];
+
+    // D'abord identifier les indices de la nourriture mangée
+    foodItems.forEach((foodItem, index) => {
+      if (head.x === foodItem.position.x && head.y === foodItem.position.y) {
+        eatenFoodIndices.push(index);
+
+        let pointsToAdd = 0;
+        let healthChange = 0;
+
+        switch (foodItem.type) {
+          case "apple":
+            pointsToAdd = appleValue;
+            healthChange = -1; // Perd 1 PV
+            break;
+          case "goldenApple":
+            pointsToAdd = appleValue * 10; // 10x la valeur normale
+            healthChange = -1; // Perd 1 PV aussi
+            // Activer le multiplicateur pour les 3 prochaines pommes
+            setGoldenAppleMultiplier(3);
+            break;
+          case "blueFruit":
+            pointsToAdd = Math.floor(appleValue / 2); // Moitié des points de la pomme rouge
+            healthChange = 1; // Gagne 1 PV
+            // +2 secondes au chrono (temporaire pour cette partie)
+            setTimeLeft((prev) => prev + 2);
+            break;
         }
-        return newHP;
-      }); // Le serpent perd 1 PV en mangeant une pomme
-      const newFoodPosition = generateRandomFood(newSnake);
-      if (newFoodPosition === null) {
-        // Plus de place pour la nourriture, le snake a gagné !
-        setGameState("gameOver");
-        return;
+
+        // Appliquer le multiplicateur de pomme d'or si actif
+        let multiplier = 1;
+        if (goldenAppleMultiplier > 0 && foodItem.type !== "goldenApple") {
+          multiplier = 3; // x3 pour les pommes suivantes
+          setGoldenAppleMultiplier(prev => prev - 1); // Décrémenter le multiplicateur
+        }
+
+        // Appliquer le bonus de points permanent si actif
+        const finalPoints = pointsToAdd * (1 + permanentPointsBonus / 100) * multiplier;
+
+        // Appliquer le double score si actif
+        const actualPointsToAdd = isDoubleScoreActive ? finalPoints * 2 : finalPoints;
+
+        setCurrentPoints((prev) => prev + Math.floor(actualPointsToAdd));
+
+        setHealthPoints((prev) => {
+          const maxHP = 10 + healthBonus;
+          const newHP = Math.min(prev + healthChange, maxHP);
+          if (newHP <= 0) {
+            setGameState("gameOver");
+          }
+          return newHP;
+        });
       }
-      setFood(newFoodPosition);
+    });
+
+    // Retirer la nourriture mangée et mettre à jour le tableau
+    let newFoodItems = [...foodItems];
+    if (eatenFoodIndices.length > 0) {
+      newFoodItems = newFoodItems.filter((_, index) => !eatenFoodIndices.includes(index));
       ateFood = true;
     }
 
-    // Vérifier si le snake mange le fruit bleu
-    let ateBlueFruit = false;
-    if (blueFruit && head.x === blueFruit.x && head.y === blueFruit.y) {
-      setCurrentPoints((prev) => prev + appleValue * 2); // Double les points
-      setHealthPoints((prev) => {
-        const newHP = prev + 1; // +1 PV au lieu de -1
-        return newHP;
-      }); // Le serpent gagne 1 PV avec le fruit bleu
-      const newBlueFruitPosition = generateBlueFruit(newSnake, food);
-      setBlueFruit(newBlueFruitPosition);
-      ateBlueFruit = true;
+    // Si de la nourriture a été mangée, générer seulement des remplacements pour celles mangées
+    if (ateFood) {
+      // Générer des remplacements pour chaque type de nourriture mangée
+      const replacementItems: FoodItem[] = [];
+
+      eatenFoodIndices.forEach((eatenIndex) => {
+        const eatenFood = foodItems[eatenIndex];
+        if (eatenFood) {
+          // Pour les pommes rouges, toujours générer un remplacement
+          if (eatenFood.type === "apple") {
+            const replacement = generateSingleFoodItem(newSnake, [...newFoodItems, ...replacementItems], "apple");
+            if (replacement) {
+              replacementItems.push(replacement);
+            }
+          }
+          // Pour les pommes d'or, chance d'en générer une nouvelle
+          else if (eatenFood.type === "goldenApple") {
+            const goldenAppleChance = goldenAppleLevel * 0.01; // 1% par niveau
+            if (Math.random() < goldenAppleChance) {
+              const replacement = generateSingleFoodItem(newSnake, [...newFoodItems, ...replacementItems], "goldenApple");
+              if (replacement) {
+                replacementItems.push(replacement);
+              }
+            }
+          }
+          // Pour les fruits bleus, toujours générer un remplacement si l'amélioration est active
+          else if (eatenFood.type === "blueFruit" && isBlueFruitActive) {
+            const replacement = generateSingleFoodItem(newSnake, [...newFoodItems, ...replacementItems], "blueFruit");
+            if (replacement) {
+              replacementItems.push(replacement);
+            }
+          }
+        }
+      });
+
+      // Ajouter les nouveaux items aux nourritures existantes
+      const finalFoodItems = [...newFoodItems, ...replacementItems];
+      setFoodItems(finalFoodItems);
+
+      // Pour compatibilité avec l'ancien code
+      const appleFood = finalFoodItems.find(f => f.type === "apple");
+      if (appleFood) {
+        setFood(appleFood.position);
+      }
+
+      const blueFruitFood = finalFoodItems.find(f => f.type === "blueFruit");
+      setBlueFruit(blueFruitFood?.position || null);
+
+      // Générer une nouvelle bombe seulement s'il n'y en a pas déjà une active
+      if (!bomb || bomb.state !== "active") {
+        const newBomb = generateBomb(newSnake, finalFoodItems);
+        setBomb(newBomb);
+      }
+
+      // Vérifier si le serpent a rempli tout le tableau
+      if (newSnake.length >= gridWidth * gridHeight) {
+        setGameState("gameOver");
+        return;
+      }
     }
 
     // Si le serpent n'a rien mangé, il rétrécit
-    if (!ateFood && !ateBlueFruit) {
+    if (!ateFood) {
       newSnake.pop();
     }
 
     snakeRef.current = newSnake;
     setSnake(newSnake);
-  }, [food, blueFruit, gameState, generateRandomFood, generateBlueFruit, gridWidth, gridHeight, appleValue]);
+  }, [foodItems, bomb, gameState, generateSingleFoodItem, generateBomb, gridWidth, gridHeight, appleValue, goldenAppleLevel, isBlueFruitActive, permanentPointsBonus, isDoubleScoreActive, goldenAppleMultiplier]);
 
   // Gérer la fin de partie
   useEffect(() => {
@@ -636,7 +1055,7 @@ export default function SnakeGame() {
     return () => clearInterval(gameInterval);
   }, [gameState, moveSnake, speedBonus]);
 
-  // Chronomètre
+  // Chronomètre et gestion des bombes
   useEffect(() => {
     if (gameState !== "playing") return;
 
@@ -648,10 +1067,27 @@ export default function SnakeGame() {
         }
         return prev - 1;
       });
+
+      // Incrémenter le timer d'apparition des bombes
+      setBombSpawnTimer((prev) => prev + 1);
+
+      // Gérer le timer de la bombe
+      setBomb((prevBomb) => {
+        if (prevBomb && prevBomb.state === "active") {
+          const newTimer = prevBomb.timer - 1;
+          if (newTimer <= 0) {
+            // La bombe explose !
+            applyBombBonus();
+            return null; // Retirer la bombe
+          }
+          return { ...prevBomb, timer: newTimer };
+        }
+        return prevBomb;
+      });
     }, 1000); // 1 seconde
 
     return () => clearInterval(timerInterval);
-  }, [gameState]);
+  }, [gameState, applyBombBonus]);
 
   // Gérer le fruit bleu quand le mode est activé/désactivé
   useEffect(() => {
@@ -957,6 +1393,31 @@ export default function SnakeGame() {
                 +{appleValue}
               </div>
             </div>
+            {(isDoubleScoreActive || permanentPointsBonus > 0 || goldenAppleMultiplier > 0) && (
+              <div className="bg-gray-800 p-4 rounded-lg">
+                <div className="text-sm text-gray-400">Bonus actifs</div>
+                <div className="text-lg font-bold text-green-400">
+                  {isDoubleScoreActive && "2x "}
+                  {permanentPointsBonus > 0 && `+${permanentPointsBonus.toFixed(1)}% `}
+                  {goldenAppleMultiplier > 0 && (
+                    <span className="text-yellow-400">
+                      🌟 x3 ({goldenAppleMultiplier} rest.)
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            {/* Indicateur du timer d'apparition des bombes */}
+            {bombSystemLevel > 0 && gameState === "playing" && bombSpawnTimer < 5 && (
+              <div className={`bg-gray-800 p-4 rounded-lg ${bombSpawnTimer >= 3 ? "border-2 border-orange-500 animate-pulse" : ""}`}>
+                <div className="text-sm text-gray-400">
+                  {bombSpawnTimer >= 3 ? "⚠️ Bombes imminentes" : "Bombes dans"}
+                </div>
+                <div className={`text-2xl font-bold ${bombSpawnTimer >= 3 ? "text-orange-400" : "text-yellow-400"}`}>
+                  {5 - bombSpawnTimer}s
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -981,57 +1442,115 @@ export default function SnakeGame() {
                 />
               ))}
 
-              {/* Nourriture */}
-              <div
-                className="absolute flex items-center justify-center"
-                style={{
-                  left: `${food.x * CELL_SIZE}px`,
-                  top: `${food.y * CELL_SIZE}px`,
-                  width: `${CELL_SIZE}px`,
-                  height: `${CELL_SIZE}px`,
-                }}
-              >
-                <img
-                  src="/Graphics/apple.png"
-                  alt="Food"
-                  className="w-12 h-12 opacity-90"
-                  onError={(e) => {
-                    console.error("Error loading apple.png");
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
+              {/* Nourriture (nouveau système) */}
+              {foodItems.map((foodItem, index) => (
                 <div
-                  className="w-8 h-8 bg-red-500 rounded-full"
-                  style={{ display: "none" }}
-                  id="apple-fallback"
-                />
-              </div>
-
-              {/* Fruit Bleu */}
-              {blueFruit && (
-                <div
+                  key={`food-${index}`}
                   className="absolute flex items-center justify-center"
                   style={{
-                    left: `${blueFruit.x * CELL_SIZE}px`,
-                    top: `${blueFruit.y * CELL_SIZE}px`,
+                    left: `${foodItem.position.x * CELL_SIZE}px`,
+                    top: `${foodItem.position.y * CELL_SIZE}px`,
                     width: `${CELL_SIZE}px`,
                     height: `${CELL_SIZE}px`,
                   }}
                 >
-                  <img
-                    src="/Graphics/blue_apple.png"
-                    alt="Blue Fruit"
-                    className="w-12 h-12 opacity-90"
-                    onError={(e) => {
-                      console.error("Error loading blue_apple.png");
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
-                  <div
-                    className="w-8 h-8 bg-blue-500 rounded-full"
-                    style={{ display: "none" }}
-                    id="blue-fruit-fallback"
-                  />
+                  {foodItem.type === "apple" && (
+                    <>
+                      <img
+                        src="/Graphics/apple.png"
+                        alt="Food"
+                        className="w-12 h-12 opacity-90"
+                        onError={(e) => {
+                          console.error("Error loading apple.png");
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                      <div
+                        className="w-8 h-8 bg-red-500 rounded-full"
+                        style={{ display: "none" }}
+                        id="apple-fallback"
+                      />
+                    </>
+                  )}
+                  {foodItem.type === "goldenApple" && (
+                    <>
+                      <div className="relative">
+                        <img
+                          src="/Graphics/golden_apple.png"
+                          alt="Pomme d'or"
+                          className="w-12 h-12 opacity-90"
+                          style={{
+                            filter: 'brightness(1.2) contrast(1.1) drop-shadow(0 0 4px rgba(255, 215, 0, 0.6))',
+                          }}
+                          onError={(e) => {
+                            console.error("Error loading golden_apple.png");
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-yellow-300 text-xs font-bold">10x</span>
+                          <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                            3x
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        className="w-8 h-8 bg-yellow-400 rounded-full"
+                        style={{ display: "none" }}
+                        id="golden-apple-fallback"
+                      />
+                    </>
+                  )}
+                  {foodItem.type === "blueFruit" && (
+                    <>
+                      <img
+                        src="/Graphics/blue_apple.png"
+                        alt="Blue Fruit"
+                        className="w-12 h-12 opacity-90"
+                        onError={(e) => {
+                          console.error("Error loading blue_apple.png");
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                      <div
+                        className="w-8 h-8 bg-blue-500 rounded-full"
+                        style={{ display: "none" }}
+                        id="blue-fruit-fallback"
+                      />
+                    </>
+                  )}
+                </div>
+              ))}
+
+              {/* Bombe avec compte à rebours */}
+              {bomb && bomb.state === "active" && (
+                <div
+                  className="absolute flex items-center justify-center"
+                  style={{
+                    left: `${bomb.position.x * CELL_SIZE}px`,
+                    top: `${bomb.position.y * CELL_SIZE}px`,
+                    width: `${CELL_SIZE}px`,
+                    height: `${CELL_SIZE}px`,
+                  }}
+                >
+                  <div className="relative">
+                    {/* Cercle de la bombe */}
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white ${
+                        bomb.timer <= 3 ? "bg-red-600 animate-pulse" : "bg-gray-700"
+                      }`}
+                    >
+                      💣
+                    </div>
+                    {/* Compte à rebours */}
+                    <div className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                      {bomb.timer}
+                    </div>
+                    {/* Cercle d'avertissement */}
+                    {bomb.timer <= 3 && (
+                      <div className="absolute inset-0 rounded-full border-2 border-red-400 animate-ping" />
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -1099,6 +1618,8 @@ export default function SnakeGame() {
           timeBonus={timeBonus}
           speedBonus={speedBonus}
           blueFruitBonus={blueFruitBonus}
+          goldenAppleLevel={goldenAppleLevel}
+          bombSystemLevel={bombSystemLevel}
           onBuyUpgrade={buyUpgrade}
           onPlayGame={() => {
             setActiveTab("game");
@@ -1166,6 +1687,9 @@ export default function SnakeGame() {
             🚀 <strong>Améliorations:</strong> Utilisez vos points pour
             débloquer des bonus permanents!
           </p>
+          <p className="mb-2">
+            ⭐ <strong>Pomme d'Or:</strong> Accorde un bonus x3 sur les 3 prochaines pommes mangées!
+          </p>
         </div>
       )}
     </div>
@@ -1183,6 +1707,8 @@ function UpgradeTree({
   timeBonus,
   speedBonus,
   blueFruitBonus,
+  goldenAppleLevel,
+  bombSystemLevel,
   onBuyUpgrade,
   onPlayGame,
   gameState,
@@ -1201,6 +1727,8 @@ function UpgradeTree({
   timeBonus: number;
   speedBonus: number;
   blueFruitBonus: number;
+  goldenAppleLevel: number;
+  bombSystemLevel: number;
   onBuyUpgrade: (id: string) => void;
   onPlayGame: () => void;
   gameState: GameState;
@@ -1264,7 +1792,15 @@ function UpgradeTree({
                               ? "GRILLE"
                               : upgrade.id === "timeBonus"
                                 ? "TEMPS"
-                                : "BONUS"}
+                                : upgrade.id === "speedBonus"
+                                  ? "VITESSE"
+                                  : upgrade.id === "blueFruit"
+                                    ? "BLEU"
+                                    : upgrade.id === "goldenApple"
+                                      ? "OR"
+                                      : upgrade.id === "bombSystem"
+                                        ? "BOMBE"
+                                        : "BONUS"}
                       </div>
                       <h3 className="font-bold text-white">{upgrade.name}</h3>
                       <div className="text-sm text-gray-400">
@@ -1302,8 +1838,16 @@ function UpgradeTree({
                           ` ${speedBonus}% de vitesse`}
                         {upgrade.id === "blueFruit" &&
                           (blueFruitBonus > 0
-                            ? ` +${blueFruitBonus} PV, +${blueFruitBonus * 2}s par partie`
+                            ? ` +${blueFruitBonus} PV, 0.5x points, +2s chrono/pomme`
                             : " Pas possédé")}
+                        {upgrade.id === "goldenApple" &&
+                          (goldenAppleLevel > 0
+                            ? ` ${goldenAppleLevel}% chance, valeur 10x`
+                            : " Non débloqué")}
+                        {upgrade.id === "bombSystem" &&
+                          (bombSystemLevel > 0
+                            ? ` Niv.${bombSystemLevel}, temps: ${15 - bombSystemLevel}s`
+                            : " Non débloqué")}
                       </div>
                     </div>
                   </div>
